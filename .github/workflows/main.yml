@@ -1,0 +1,43 @@
+name: Update Sophos Blocklist
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  update-blocklist:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download and process host file
+        run: |
+          # Скачиваем исходный файл
+          curl -sSL https://raw.githubusercontent.com/neodevpro/neodevhost/master/host -o raw_host
+          
+          # Обрабатываем файл: убираем комментарии и 0.0.0.0
+          grep -v '^#' raw_host | grep -v '^$' | sed 's/^0\.0\.0\.0 //' | sed 's/^127\.0\.0\.1 //' > sophos_web_blocklist.txt
+          
+          # Убираем временный файл
+          rm raw_host
+          
+          # Показываем статистику
+          echo "Processed domains: $(wc -l < sophos_web_blocklist.txt)"
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add sophos_web_blocklist.txt
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Sophos blocklist - $(date)"
+            git push
+          fi
