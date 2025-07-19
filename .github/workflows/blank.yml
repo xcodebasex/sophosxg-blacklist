@@ -18,16 +18,22 @@ jobs:
 
       - name: Download and process host file
         run: |
-          # Скачиваем исходный файл
+          # Download source file
           curl -sSL https://raw.githubusercontent.com/neodevpro/neodevhost/master/host -o raw_host
           
-          # Обрабатываем файл: убираем комментарии и 0.0.0.0
-          grep -v '^#' raw_host | grep -v '^$' | sed 's/^0\.0\.0\.0 //' | sed 's/^127\.0\.0\.1 //' > sophos_web_blocklist.txt
+          # Process file: remove comments, empty lines, prefixes, duplicates, and sort
+          grep -v '^#' raw_host | \
+          grep -v '^$' | \
+          sed 's/^0\.0\.0\.0 //' | \
+          sed 's/^127\.0\.0\.1 //' | \
+          grep -v '^localhost$' | \
+          grep -v '^broadcasthost$' | \
+          sort -u > sophos_web_blocklist.txt
           
-          # Убираем временный файл
+          # Remove temporary file
           rm raw_host
           
-          # Показываем статистику
+          # Show statistics
           echo "Processed domains: $(wc -l < sophos_web_blocklist.txt)"
 
       - name: Commit and push changes
