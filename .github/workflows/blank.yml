@@ -3,7 +3,7 @@ name: Update Sophos Blocklist
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 12 * * *'  # 14:00 time (UTC+2)
+    - cron: '0 12 * * *'  # 14:00 Latvia time (UTC+2)
 
 jobs:
   update-blocklist:
@@ -50,5 +50,13 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add sophos_web_blocklist.txt
-          git commit -m "Update Sophos blocklist - $(date '+%Y-%m-%d %H:%M:%S') Latvia time"
-          git push
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          else
+            git commit -m "Update Sophos blocklist - $(date '+%Y-%m-%d %H:%M:%S') Latvia time"
+            git push
+            echo "Changes committed and pushed"
+          fi
