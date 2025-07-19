@@ -3,7 +3,7 @@ name: Update Sophos Blocklist
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 12 * * *'  # 14:00 time (UTC+2)
 
 jobs:
   update-blocklist:
@@ -15,6 +15,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Remove old blocklist file
+        run: |
+          if [ -f sophos_web_blocklist.txt ]; then
+            rm sophos_web_blocklist.txt
+            echo "Old blocklist file removed"
+          else
+            echo "No existing blocklist file found"
+          fi
 
       - name: Download and process host file
         run: |
@@ -41,9 +50,5 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add sophos_web_blocklist.txt
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Update Sophos blocklist - $(date)"
-            git push
-          fi
+          git commit -m "Update Sophos blocklist - $(date '+%Y-%m-%d %H:%M:%S') Latvia time"
+          git push
